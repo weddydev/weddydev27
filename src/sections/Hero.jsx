@@ -1,16 +1,14 @@
 /* HERO — slow Ken Burns, giant names revealed letter by letter through masks,
-   gold dust that drifts with the cursor / phone tilt, tiny luxury meta. */
-import { useEffect, useRef } from 'react';
+   tiny luxury meta. */
+import { useRef } from 'react';
 import C from '../config.js';
 import { gsap, SplitText, useGSAP } from '../lib/gsap.js';
 import { EASE, img, srcSet, fmt, guest } from '../lib/utils.js';
-import { goldDust } from '../lib/fx.js';
 
 const MASK = '[&>*]:-mx-[.05em] [&>*]:-mb-[.12em] [&>*]:px-[.05em] [&>*]:pb-[.12em]';
 
 export default function Hero({ entered }) {
   const root = useRef(null);
-  const dust = useRef(null);
   const chars = useRef({ a: [], b: [] });
 
   useGSAP(() => {
@@ -41,8 +39,6 @@ export default function Hero({ entered }) {
       .to('.scroll-cue', { opacity: 1, y: 0, duration: 1.8 }, 2.4);
   }, { scope: root, dependencies: [entered] });
 
-  useEffect(() => { const s = goldDust(dust.current); return () => s && s.destroy(); }, []);
-
   return (
     <section id="hero" ref={root} className="relative flex h-screen-s min-h-[560px] items-end overflow-hidden">
       <div className="hero-media absolute inset-0 overflow-hidden will-change-transform">
@@ -52,7 +48,6 @@ export default function Hero({ entered }) {
         />
       </div>
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,10,9,.75)_0%,rgba(11,10,9,0)_26%,rgba(11,10,9,0)_45%,rgba(11,10,9,.88)_82%,var(--color-obsidian)_100%),radial-gradient(80%_50%_at_15%_100%,rgba(90,15,31,.45),transparent_70%)]" />
-      <canvas ref={dust} className="pointer-events-none absolute inset-0 size-full" aria-hidden="true" />
 
       <div className="hero-inner px-gutter relative z-[2] will-change-transform w-full pb-[calc(118px+env(safe-area-inset-bottom))] text-center">
         <p className="hero-fade hero-eyebrow eyebrow text-ivory/70">{C.hero.eyebrow}</p>

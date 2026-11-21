@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Canvas FX — gold dust, petals & embers, golden confetti, plus shared tilt
+   Canvas FX — petals & embers, golden confetti, plus shared tilt
    input (mouse / gyroscope). DPR is capped, loops pause off-screen.
    ========================================================================== */
 import { env, clamp } from './utils.js';
@@ -72,39 +72,6 @@ function petal(c1, c2, size) {
   x.globalAlpha = 0.35; x.strokeStyle = 'rgba(255,255,255,.4)'; x.lineWidth = 0.8;
   x.beginPath(); x.moveTo(0, -s * 0.9); x.quadraticCurveTo(s * 0.12, 0, 0, s * 0.9); x.stroke();
   return c;
-}
-
-/* ---------- Hero gold dust (reacts to cursor / gyroscope) ---------- */
-export function goldDust(canvas) {
-  if (!canvas || env.reduced) return null;
-  const N = env.isMobile ? 56 : 130;
-  const spr = sprite(232, 190, 110, 64);
-  const cur = { x: 0, y: 0 };
-  let P = [];
-  return loop(canvas, {
-    setup(st) {
-      P = Array.from({ length: N }, () => {
-        const z = Math.pow(Math.random(), 1.6);
-        return { x: Math.random() * st.w, y: Math.random() * st.h, z, s: 0.5 + z * 2.8, vy: -(0.05 + z * 0.32), ph: Math.random() * 6.28, tw: 0.6 + Math.random() * 1.8, sw: Math.random() * 0.6 };
-      });
-      for (let i = 0; i < (env.isMobile ? 4 : 8); i++) P.push({ x: Math.random() * st.w, y: Math.random() * st.h, z: 1.2, s: 9 + Math.random() * 10, vy: -0.08, ph: Math.random() * 6, tw: 0.3, sw: 0.2, bokeh: true });
-    },
-    frame(st, k) {
-      const { ctx, w, h, t } = st;
-      cur.x += (tilt.x - cur.x) * 0.04; cur.y += (tilt.y - cur.y) * 0.04;
-      ctx.clearRect(0, 0, w, h); ctx.globalCompositeOperation = 'lighter';
-      for (const p of P) {
-        p.y += p.vy * k; p.x += Math.sin(t * 0.0004 + p.ph) * p.sw * 0.3 * k;
-        if (p.y < -30) { p.y = h + 20; p.x = Math.random() * w; }
-        const a = p.bokeh ? 0.07 : (0.22 + 0.78 * Math.min(1, p.z)) * (0.45 + 0.55 * Math.sin(t * 0.001 * p.tw + p.ph));
-        if (a <= 0) continue;
-        ctx.globalAlpha = a;
-        const d = p.s * 6;
-        ctx.drawImage(spr, p.x - cur.x * 46 * p.z - d / 2, p.y - cur.y * 34 * p.z - d / 2, d, d);
-      }
-      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-    }
-  });
 }
 
 /* ---------- Finale: falling rose petals + rising gold embers ---------- */

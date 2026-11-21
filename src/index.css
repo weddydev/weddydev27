@@ -35,6 +35,9 @@
   --animate-hint: hint 3.2s ease-in-out infinite;
 }
 
+/* `stack:` — the stacking sticky event passes. Desktop with a mouse only (see Events.jsx STACK). */
+@custom-variant stack (@media (min-width: 900px) and (min-height: 700px) and (hover: hover) and (pointer: fine));
+
 @property --mx { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
 @property --my { syntax: "<percentage>"; inherits: false; initial-value: 20%; }
 
@@ -116,6 +119,12 @@
     z-index: 9000; pointer-events: none; opacity: .085;
     background-image: var(--noise, none); background-size: 180px 180px;
     animation: grain 1.2s steps(5) infinite; will-change: transform;
+  }
+  /* On touch screens the grain holds still and is exactly screen-sized: an oversized
+     full-screen layer jumping 4× a second on top of everything cost GPU memory the
+     page needs and read as blinking on dark sections. */
+  @media (hover: none), (pointer: coarse) {
+    .grain { inset: 0; width: 100%; height: 100%; animation: none; will-change: auto; }
   }
   .vignette { position: fixed; inset: 0; z-index: 8999; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%); }
 
@@ -240,13 +249,14 @@
       repeating-linear-gradient(90deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px),
       linear-gradient(155deg, #1f1b17 0%, #0d0b0a 55%, #17130f 100%);
     box-shadow: 0 50px 90px -40px #000, 0 2px 0 rgba(255,255,255,.04) inset;
-    will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden;
   }
-  /* 3D tilt and the screen-blended light only where there is a mouse. On phones,
-     preserve-3d made the card's stacked layers z-fight and the blend mode forced a
-     full re-composite on every scroll frame: both showed up as flicker. */
+  /* 3D tilt, GPU layers and the screen-blended light only where there is a mouse. On
+     phones these made the passes z-fight, re-composite every scroll frame and exhaust
+     graphics memory, so tiles of other cards blinked through: there a pass is a plain,
+     flat element that scrolls like any other. */
   @media (hover: hover) and (pointer: fine) {
-    .pass { transform-style: preserve-3d; -webkit-backface-visibility: visible; backface-visibility: visible; }
+    .pass { transform-style: preserve-3d; will-change: transform; }
+    .pass-dim { will-change: opacity; }
     .pass-shine { mix-blend-mode: screen; }
   }
   .pass-accent {

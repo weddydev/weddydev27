@@ -23,16 +23,19 @@ function Barcode({ seed }) {
   return <svg className="h-[34px] w-24 flex-none fill-[#e8c97f]/70 desk:h-[46px] desk:w-full" viewBox="0 0 120 34" preserveAspectRatio="none" aria-hidden="true">{bars}</svg>;
 }
 
+/* keep in sync with the `stack` variant in index.css */
+const STACK = '(min-width: 900px) and (min-height: 700px) and (hover: hover) and (pointer: fine)';
+
 const DT = 'font-sans text-[8.5px] tracking-[.36em] uppercase text-ivory/45';
 
 function Pass({ e, i, total, onCalendar }) {
   const card = useRef(null);
   useTilt(card);
   return (
-    <div className="pass-wrap relative mb-[7vh] last:mb-0 [@media(min-height:700px)]:sticky [@media(min-height:700px)]:mb-[16vh] [@media(min-height:700px)]:last:mb-0 [@media(min-height:700px)]:top-[calc(88px+var(--i)*13px)]" style={{ '--i': i }}>
+    <div className="pass-wrap relative mb-[7vh] last:mb-0 stack:sticky stack:mb-[16vh] stack:last:mb-0 stack:top-[calc(88px+var(--i)*13px)]" style={{ '--i': i }}>
       <article ref={card} className={`pass ${e.style === 'accent' ? 'pass-accent' : ''} desk:grid desk:grid-cols-[1fr_auto_250px]`} aria-label={plain(e.title)}>
         <div className="pass-shine" />
-        <div className="pass-dim pointer-events-none absolute inset-0 z-[4] rounded-[inherit] bg-black opacity-0 will-change-[opacity]" />
+        <div className="pass-dim pointer-events-none absolute inset-0 z-[4] rounded-[inherit] bg-black opacity-0" />
         <div className="px-6 pt-6 pb-1 desk:py-[34px] desk:pr-[34px] desk:pl-[38px]">
           <div className="flex items-center justify-between gap-3">
             <span className="w-[38px]"><Monogram variant="mini" /></span>
@@ -97,7 +100,10 @@ export default function Events() {
     // foil glint sweeps across each pass as it arrives
     gsap.utils.toArray('.pass', root.current).forEach((p) => gsap.fromTo(p.querySelector('.pass-shine'), { '--mx': '-30%', '--my': '10%' }, { '--mx': '130%', '--my': '60%', duration: 2.6, ease: 'power2.inOut', scrollTrigger: { trigger: p, start: 'top 75%', once: true } }));
     // stacking: earlier passes recede as the next slides over them
-    if (window.matchMedia('(min-height: 700px)').matches && !env.reduced) {
+    // Desktop only. On phones, five sticky passes piled on the same spot each needed their own
+    // full-size GPU layers at once; the phone ran out of graphics memory and patches of the
+    // cards underneath blinked through the one on top. There they simply scroll past.
+    if (window.matchMedia(STACK).matches && !env.reduced) {
       wraps.forEach((w, i) => {
         const next = wraps[i + 1];
         if (!next) return;
