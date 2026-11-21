@@ -21,7 +21,7 @@ const defaultBase = () => {
   const u = new URL(window.location.href); u.search = ''; u.hash = '';
   return u.href.replace(/generator\.html$/, '');
 };
-const defaultMsg = `${C.invocation.devanagari}\n\nDear {guest},\n\nWith the blessings of our elders, we joyfully invite you to the wedding of ${C.couple.partner1} & ${C.couple.partner2} in ${C.city}, ${fmt.short(C.date)}. Your presence and blessings would mean the world to us.\n\nYour personal invitation awaits:\n{link}`;
+const defaultMsg = `Dear {guest},\n\nWith great joy, ${C.couple.partner1} & ${C.couple.partner2} invite you to celebrate with them in ${C.city}, ${fmt.short(C.date)}.\n\nYour personal invitation awaits:\n{link}`;
 
 const linkFor = (base, name) => {
   const b = base.trim() || defaultBase();
@@ -43,7 +43,7 @@ function Generator() {
   const saved = load();
   const [base, setBase] = useState(saved.base || defaultBase());
   const [msg, setMsg] = useState(saved.msg || defaultMsg);
-  const [list, setList] = useState(saved.list || 'Mr. and Mrs. Khanna\nThe Sharma Parivar | 919800000000\nShri & Smt. Iyer');
+  const [list, setList] = useState(saved.list || 'Mr. and Mrs. Khanna\nThe Oberoi Family | 919800000000\nAnanya & Rohan');
   const [toast, setToast] = useState('');
   const root = useRef(null);
   useEffect(() => { applyTheme(); }, []);
@@ -80,7 +80,7 @@ function Generator() {
       <section className="gen-in grid gap-10 desk:grid-cols-2">
         <label className="block">
           <span className="eyebrow text-ivory/58">Live site address</span>
-          <input className={`${field} font-sans text-[15px]`} value={base} onChange={(e) => setBase(e.target.value)} placeholder="https://aarav-ishani.netlify.app/" />
+          <input className={`${field} font-sans text-[15px]`} value={base} onChange={(e) => setBase(e.target.value)} placeholder="https://aarav-meher.netlify.app/" />
           <span className="mt-2 block text-[.9em] text-ivory/45 italic">Set it once you've deployed. Links work locally too.</span>
         </label>
         <label className="block">

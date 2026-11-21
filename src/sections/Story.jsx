@@ -43,15 +43,7 @@ export default function Story() {
     const IR = { immediateRender: false };
     for (let i = 1; i < n; i++) {
       const at = i - 1 + 0.3;
-      /* Text swap is sequential: the incoming chapter starts only after the outgoing lines
-         have left, so the two never overlap mid-scroll, and it all completes inside this
-         chapter's scroll segment (before the next swap begins at `at + 1`). */
-      const outLines = linesOf[i - 1], inLines = linesOf[i];
-      const outStagger = 0.015, outDur = 0.3;
-      const inStart = at + outDur + outStagger * Math.max(0, outLines.length - 1) + 0.01;
-      const inDur = 0.38;
-      const inStagger = Math.min(0.025, Math.max(0, (at + 0.97 - inStart - inDur) / Math.max(1, inLines.length - 1)));
-      tl.fromTo(outLines, { yPercent: 0 }, { yPercent: -115, duration: outDur, stagger: outStagger, ease: 'power2.in', ...IR }, at)
+      tl.fromTo(linesOf[i - 1], { yPercent: 0 }, { yPercent: -115, duration: 0.35, stagger: 0.025, ease: 'power2.in', ...IR }, at)
         .fromTo(backs[i - 1], { clipPath: 'inset(0% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.6, ease: 'power2.inOut', ...IR }, at)
         .fromTo(backs[i], { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut', ...IR }, at)
         .fromTo(backs[i].querySelector('img'), { scale: 1.35 }, { scale: 1.05, duration: 1, ease: 'none', ...IR }, at)
@@ -62,7 +54,7 @@ export default function Story() {
       to.forEach((d, j) => {
         if (strips[j] && d !== from[j]) tl.fromTo(strips[j], { yPercent: -from[j] * 10 }, { yPercent: -d * 10, duration: 0.6, ease: 'power3.inOut', ...IR }, at + 0.05 + j * 0.04);
       });
-      tl.fromTo(inLines, { yPercent: 115 }, { yPercent: 0, duration: inDur, stagger: inStagger, ease: 'power3.out', ...IR }, inStart);
+      tl.fromTo(linesOf[i], { yPercent: 115 }, { yPercent: 0, duration: 0.5, stagger: 0.05, ease: 'power3.out', ...IR }, at + 0.32);
     }
     tl.to({}, { duration: 0.5 });
     const total = tl.duration();
