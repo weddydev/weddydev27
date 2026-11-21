@@ -1,7 +1,7 @@
 /* ==========================================================================
    Audio — muted by default. Plays config.music.src if set, otherwise a
    generative ambient score (slow pad chords + distant bells, WebAudio).
-   Sound effects (seal crack, paper, chime, whoosh) only play when on.
+   Sound effects (unseal, paper, chime, whoosh) only play when on.
    ========================================================================== */
 import C from '../config.js';
 
@@ -89,16 +89,14 @@ function noise(dur) {
   const s = ctx.createBufferSource(); s.buffer = b; return s;
 }
 const SFX = {
-  crack() {
+  /* the seal turning (a soft, warm swell) then light released (a rising shimmer of bells) */
+  unseal() {
     const t = ctx.currentTime;
-    const n = noise(0.35), bp = ctx.createBiquadFilter(), g = ctx.createGain();
-    bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = 0.8;
-    g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-    n.connect(bp); bp.connect(g); g.connect(dry); g.connect(wet.input); n.start(t);
     const o = ctx.createOscillator(), og = ctx.createGain();
-    o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.25);
-    og.gain.setValueAtTime(0.5, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-    o.connect(og); og.connect(dry); o.start(t); o.stop(t + 0.35);
+    o.type = 'sine'; o.frequency.setValueAtTime(146.8, t); o.frequency.exponentialRampToValueAtTime(73.4, t + 0.6);
+    og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(0.28, t + 0.04); og.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+    o.connect(og); og.connect(dry); og.connect(wet.input); o.start(t); o.stop(t + 0.85);
+    [69, 74, 78, 81, 86, 90].forEach((m, i) => bell(mtof(m), t + 0.7 + i * 0.075, 0.032));
   },
   paper() {
     const t = ctx.currentTime;

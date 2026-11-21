@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import C from '../config.js';
 import { gsap, ScrollTrigger, useGSAP } from '../lib/gsap.js';
-import { img, srcSet } from '../lib/utils.js';
+import { img, srcSet, EASE } from '../lib/utils.js';
 import Button from '../components/Button.jsx';
 import { Corners, Rich } from '../components/Ui.jsx';
 import { Lines, Reveal } from '../components/Reveal.jsx';
@@ -14,19 +14,39 @@ export default function Venue() {
   const words = String(C.venue.name).split(' ');
 
   useGSAP(() => {
-    gsap.timeline({ scrollTrigger: { trigger: '.venue-pin', start: 'top top', end: '+=130%', pin: true, scrub: 1.2, anticipatePin: 1 } })
-      .fromTo('.venue-media', { clipPath: 'inset(16% 12% 12% 12% round 48vw 48vw 0vw 0vw)' }, { clipPath: 'inset(0% 0% 0% 0% round 0vw 0vw 0vw 0vw)', ease: 'power2.inOut', duration: 1 }, 0)
-      .fromTo('.venue-media img', { scale: 1.3 }, { scale: 1, ease: 'none', duration: 1.2 }, 0)
-      .fromTo('.vn-0', { xPercent: -24 }, { xPercent: 0, ease: 'none', duration: 1.2 }, 0)
-      .fromTo('.vn-1', { xPercent: 24 }, { xPercent: 0, ease: 'none', duration: 1.2 }, 0)
-      .fromTo('.venue-kicker', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4 }, 0.55);
+    const ARCH = 'inset(16% 12% 12% 12% round 48vw 48vw 0vw 0vw)', OPEN = 'inset(0% 0% 0% 0% round 0vw 0vw 0vw 0vw)';
+    const mm = gsap.matchMedia();
+
+    /* Desktop: the screen pins and the arch opens with the scroll */
+    mm.add('(min-width: 900px) and (pointer: fine)', () => {
+      gsap.timeline({ scrollTrigger: { trigger: '.venue-pin', start: 'top top', end: '+=130%', pin: true, scrub: 1.2, anticipatePin: 1 } })
+        .fromTo('.venue-media', { clipPath: ARCH }, { clipPath: OPEN, ease: 'power2.inOut', duration: 1 }, 0)
+        .fromTo('.venue-media img', { scale: 1.3 }, { scale: 1, ease: 'none', duration: 1.2 }, 0)
+        .fromTo('.vn-0', { xPercent: -24 }, { xPercent: 0, ease: 'none', duration: 1.2 }, 0)
+        .fromTo('.vn-1', { xPercent: 24 }, { xPercent: 0, ease: 'none', duration: 1.2 }, 0)
+        .fromTo('.venue-kicker', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4 }, 0.55);
+    });
+
+    /* Phones and tablets: no pinning and no scroll-scrubbed clip-path. Pinning under native
+       touch scrolling (and the address bar resizing the viewport) made the section jump, and
+       re-clipping a full-screen filtered photo on every scroll frame made it flicker. The arch
+       now opens once, on its own clock, then the clip is removed entirely. */
+    mm.add('not all and (min-width: 900px) and (pointer: fine)', () => {
+      gsap.timeline({ defaults: { duration: 2.4, ease: 'power3.inOut' }, scrollTrigger: { trigger: '.venue-pin', start: 'top 72%', once: true } })
+        .fromTo('.venue-media', { clipPath: ARCH }, { clipPath: OPEN, clearProps: 'clipPath' }, 0)
+        .fromTo('.venue-media img', { scale: 1.3 }, { scale: 1, ease: EASE, duration: 3 }, 0)
+        .fromTo('.vn-0', { xPercent: -24 }, { xPercent: 0, ease: EASE }, 0.15)
+        .fromTo('.vn-1', { xPercent: 24 }, { xPercent: 0, ease: EASE }, 0.15)
+        .fromTo('.venue-kicker', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1.4, ease: EASE }, 0.9);
+    });
+
     ScrollTrigger.create({ trigger: '.venue-body', start: 'top bottom+=600', once: true, onEnter: () => setMapOn(true) });
   }, { scope: root });
 
   return (
     <section id="venue" ref={root} className="relative bg-obsidian pb-[clamp(110px,22vw,200px)]">
       <div className="venue-pin relative grid h-screen-s min-h-[560px] place-items-center overflow-hidden">
-        <div className="venue-media absolute inset-0 will-change-[clip-path]">
+        <div className="venue-media absolute inset-0">
           <img src={img(C.venue.image, 1600)} srcSet={srcSet(C.venue.image)} sizes="100vw" alt="" loading="lazy" className="grade size-full object-cover will-change-transform" />
         </div>
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(11,10,9,.4),transparent_30%,transparent_60%,var(--color-obsidian))]" />

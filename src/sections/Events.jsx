@@ -29,7 +29,7 @@ function Pass({ e, i, total, onCalendar }) {
   const card = useRef(null);
   useTilt(card);
   return (
-    <div className="pass-wrap relative mb-[7vh] will-change-transform [perspective:1400px] last:mb-0 [@media(min-height:700px)]:sticky [@media(min-height:700px)]:mb-[16vh] [@media(min-height:700px)]:last:mb-0 [@media(min-height:700px)]:top-[calc(88px+var(--i)*13px)]" style={{ '--i': i }}>
+    <div className="pass-wrap relative mb-[7vh] last:mb-0 [@media(min-height:700px)]:sticky [@media(min-height:700px)]:mb-[16vh] [@media(min-height:700px)]:last:mb-0 [@media(min-height:700px)]:top-[calc(88px+var(--i)*13px)]" style={{ '--i': i }}>
       <article ref={card} className={`pass ${e.style === 'accent' ? 'pass-accent' : ''} desk:grid desk:grid-cols-[1fr_auto_250px]`} aria-label={plain(e.title)}>
         <div className="pass-shine" />
         <div className="pass-dim pointer-events-none absolute inset-0 z-[4] rounded-[inherit] bg-black opacity-0 will-change-[opacity]" />
@@ -90,7 +90,10 @@ export default function Events() {
 
   useGSAP(() => {
     const wraps = gsap.utils.toArray('.pass-wrap', root.current);
-    wraps.forEach((w) => gsap.fromTo(w, { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 1.8, ease: EASE, scrollTrigger: { trigger: w, start: 'top 95%', once: true } }));
+    // The sticky wrapper never gets a transform (sticky + transform flickers in mobile
+    // Safari and Chrome): every animation runs on the card inside it.
+    const cardOf = (w) => w.querySelector('.pass');
+    wraps.forEach((w) => gsap.fromTo(cardOf(w), { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 1.8, ease: EASE, scrollTrigger: { trigger: w, start: 'top 95%', once: true } }));
     // foil glint sweeps across each pass as it arrives
     gsap.utils.toArray('.pass', root.current).forEach((p) => gsap.fromTo(p.querySelector('.pass-shine'), { '--mx': '-30%', '--my': '10%' }, { '--mx': '130%', '--my': '60%', duration: 2.6, ease: 'power2.inOut', scrollTrigger: { trigger: p, start: 'top 75%', once: true } }));
     // stacking: earlier passes recede as the next slides over them
@@ -99,7 +102,7 @@ export default function Events() {
         const next = wraps[i + 1];
         if (!next) return;
         gsap.timeline({ scrollTrigger: { trigger: next, start: 'top bottom', end: `top ${88 + (i + 1) * 13}px`, scrub: true } })
-          .to(w, { scale: 0.92, ease: 'none' }, 0)
+          .to(cardOf(w), { scale: 0.92, ease: 'none' }, 0)
           .to(w.querySelector('.pass-dim'), { opacity: 0.5, ease: 'none' }, 0);
       });
     }
@@ -109,11 +112,16 @@ export default function Events() {
     const onScreen = new Set();
     const io = new IntersectionObserver((ents) => ents.forEach((en) => (en.isIntersecting ? onScreen.add(en.target) : onScreen.delete(en.target))));
     shines.forEach((s) => io.observe(s));
-    let lx = 999, ly = 999;
+    // Raw gyroscope readings jitter every frame (hand tremor + sensor noise), which made the
+    // light shake and the passes flicker on phones. Smooth it, and only repaint when the
+    // light has moved by a whole percent.
+    let sx = 0, sy = 0, lx = '', ly = '';
     const tick = () => {
-      if (!tilt.gyro || !onScreen.size || (Math.abs(tilt.x - lx) < 0.01 && Math.abs(tilt.y - ly) < 0.01)) return;
-      lx = tilt.x; ly = tilt.y;
-      const mx = `${(50 + tilt.x * 55).toFixed(1)}%`, my = `${(35 + tilt.y * 45).toFixed(1)}%`;
+      if (!tilt.gyro || !onScreen.size) return;
+      sx += (tilt.x - sx) * 0.06; sy += (tilt.y - sy) * 0.06;
+      const mx = `${Math.round(50 + sx * 55)}%`, my = `${Math.round(35 + sy * 45)}%`;
+      if (mx === lx && my === ly) return;
+      lx = mx; ly = my;
       onScreen.forEach((s) => { s.style.setProperty('--mx', mx); s.style.setProperty('--my', my); });
     };
     gsap.ticker.add(tick);

@@ -42,13 +42,14 @@ export function useTilt(ref) {
     const reset = () => gsap.to(card, { rotateX: 0, rotateY: 0, duration: 1.8, ease: EASE });
     const pm = (e) => e.pointerType === 'mouse' && set(e.clientX, e.clientY, true);
     const pl = (e) => e.pointerType === 'mouse' && reset();
-    const ts = (e) => set(e.touches[0].clientX, e.touches[0].clientY, true);
+    // On touch the light follows the finger but the card never rotates: almost every scroll
+    // swipe starts on a card, and tilting it in 3D mid-scroll made the passes wobble and flicker.
     const tm = (e) => set(e.touches[0].clientX, e.touches[0].clientY, false);
     card.addEventListener('pointermove', pm); card.addEventListener('pointerleave', pl);
-    card.addEventListener('touchstart', ts, { passive: true }); card.addEventListener('touchmove', tm, { passive: true }); card.addEventListener('touchend', reset, { passive: true });
+    card.addEventListener('touchstart', tm, { passive: true }); card.addEventListener('touchmove', tm, { passive: true });
     return () => {
       card.removeEventListener('pointermove', pm); card.removeEventListener('pointerleave', pl);
-      card.removeEventListener('touchstart', ts); card.removeEventListener('touchmove', tm); card.removeEventListener('touchend', reset);
+      card.removeEventListener('touchstart', tm); card.removeEventListener('touchmove', tm);
     };
   }, [ref]);
 }
